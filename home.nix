@@ -28,6 +28,8 @@
     gamemode
     wl-clipboard
 
+    python311
+
     flatpak
     appimage-run
     jmtpfs
@@ -196,13 +198,12 @@
         name = "Jeffery Oo";
         email = "oojefferywm@proton.me";
       };
-      init = {
-        defaultBranch = "main";
-      };
+      init.defaultBranch = "main";
+      tag.gpgSign = true;
     };
     signing = {
-      key = "~/.ssh/id_ed25519.pub";
-      format = "ssh";
+      format = "openpgp";
+      key = "19992BECE706CC59";
       signByDefault = true;
     };
   };
@@ -311,10 +312,10 @@
   services.ssh-agent.enable = true;
   programs.ssh = {
     enable = true;
-    matchBlocks = {
-      "*" = {
-        addKeysToAgent = "yes";
-      };
+    matchBlocks."*" = {
+      serverAliveInterval = 60;
+      serverAliveCountMax = 3;
+      addKeysToAgent = "yes";
     };
   };
 
