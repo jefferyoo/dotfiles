@@ -54,12 +54,7 @@
   # };
 
   # Enable the X11 windowing system.
-  services.xserver = {
-    enable = true;
-    windowManager.i3 = {
-      enable = true;
-    };
-  };
+  services.xserver.enable = false;
 
   services.earlyoom = {
     enable = true;
@@ -167,6 +162,13 @@
   programs.hyprland = {
     enable = true;
     xwayland.enable = true;
+    withUWSM = true;
+  };
+  programs.nh = {
+    enable = true;
+    clean.enable = true;
+    clean.extraArgs = "--keep 20";
+    flake = "/home/yoops/dotfiles";
   };
 
   # List packages installed in system profile.
@@ -180,7 +182,6 @@
 
   environment.variables = {
     NIXOS_OZONE_WL = 1; # Configure Electron / CEF apps to use Wayland
-#    VK_ICD_FILENAMES = "/run/opengl-driver/share/vulkan/icd.d/radeon_icd.x86_64.json";  
   };
 
   # Some programs need SUID wrappers, can be configured further or are

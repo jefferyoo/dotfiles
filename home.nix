@@ -21,6 +21,7 @@
   };
 
   home.packages = with pkgs; [
+    # System components
     networkmanagerapplet
     libnotify
     nerd-fonts.fira-code
@@ -28,25 +29,29 @@
     gamemode
     wl-clipboard
 
-    python311
-
+    # System utilities
     flatpak
     appimage-run
+    vulkan-tools
     jmtpfs
     p7zip
 
+    # Languages
+    python315
+    rustup
+
+    # Apps
     discord-canary
     xournalpp
     tmux
     keepassxc
     typst
     
+    # Gaming
     steam
     prismlauncher
     limo
     dolphin-emu
-
-    vulkan-tools
   ];
 
   fonts.fontconfig.enable = true;
@@ -112,11 +117,14 @@
     enableCompletion = true;
 
     shellAliases = {
-      update = "sudo nixos-rebuild switch --flake ~/dotfiles#yoops";
+      update = "nh os switch && flatpak update";
+
       config = "nvim ~/dotfiles/configuration.nix";
       flake = "nvim ~/dotfiles/flake.nix";
       home = "nvim ~/dotfiles/home.nix";	  
+      hypr = "nvim ~/.config/hypr/hyprland.conf";	  
       
+      sudo = "run0";
       ls = "eza -la";
       cat = "bat --style=plain --paging=never";
     };
@@ -352,6 +360,8 @@
     AMD_VULKAN_ICD="RADV";
     RADV_PERFTEST="gpl";
     RADV_DEBUG="nongg";
+
+    FLAKE="$HOME/dotfiles";
   };
 
   home.stateVersion = "25.05";
