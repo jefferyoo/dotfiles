@@ -1,4 +1,4 @@
-{ pkgs, lib, neovim-nightly-overlay, ...}:
+{ pkgs, lib, config, neovim-nightly-overlay, ...}:
 
 {
   nixpkgs.config.allowUnfreePredicate = pkg : builtins.elem (lib.getName pkg) [
@@ -35,10 +35,12 @@
     vulkan-tools
     jmtpfs
     p7zip
+    zoxide
 
     # Languages
     python315
     rustup
+    gcc
 
     # Apps
     discord-canary
@@ -115,6 +117,7 @@
   programs.zsh = {
     enable = true;
     enableCompletion = true;
+    dotDir = "${config.xdg.configHome}/zsh";
 
     shellAliases = {
       update = "nh os switch && flatpak update";
@@ -123,13 +126,16 @@
       flake = "nvim ~/dotfiles/flake.nix";
       home = "nvim ~/dotfiles/home.nix";	  
       hypr = "nvim ~/.config/hypr/hyprland.conf";	  
+
+      trash-clear = "rm -rf ~/.local/share/Trash/files/* && rm -rf ~/.local/share/Trash/info/*";
       
       sudo = "run0";
       ls = "eza -la";
       cat = "bat --style=plain --paging=never";
+      cd = "z";
     };
 
-    initExtra = ''
+    initContent = ''
       ds4color() {
         local RED=''${1:-4}
         local GREEN=''${2:-0}
@@ -156,6 +162,11 @@
     oh-my-zsh = {
       enable = true;
     };
+  };
+
+  programs.zoxide = {
+    enable = true;
+    enableZshIntegration = true;
   };
 
   programs.atuin = {
@@ -320,6 +331,8 @@
   services.ssh-agent.enable = true;
   programs.ssh = {
     enable = true;
+    enableDefaultConfig = false;
+
     matchBlocks."*" = {
       serverAliveInterval = 60;
       serverAliveCountMax = 3;
