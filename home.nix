@@ -55,7 +55,6 @@
     prismlauncher
     limo
     dolphin-emu
-    shadps4
   ];
 
   fonts.fontconfig.enable = true;
