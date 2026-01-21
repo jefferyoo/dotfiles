@@ -28,6 +28,7 @@
     hyprshot
     gamemode
     wl-clipboard
+    xorg.xauth
 
     # System utilities
     flatpak
@@ -54,9 +55,27 @@
     prismlauncher
     limo
     dolphin-emu
+    shadps4
   ];
 
   fonts.fontconfig.enable = true;
+
+  systemd.user.services.sunshine = {
+    Unit = {
+      Description = "Sunshine Streaming Server";
+      After = [ "graphical-session.target" ];
+    };
+  
+    Service = {
+      ExecStart = "${pkgs.sunshine}/bin/sunshine";
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+   
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
 
   programs.firefox = {
     enable = true;

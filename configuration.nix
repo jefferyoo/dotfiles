@@ -17,6 +17,7 @@
   boot.kernelModules = [
     "amdgpu"
     "hid_sony"
+    "uinput"
   ];
 
   boot.kernelParams = [
@@ -56,6 +57,7 @@
   # Enable the X11 windowing system.
   services.xserver.enable = false;
 
+
   services.earlyoom = {
     enable = true;
     freeMemThreshold = 5;
@@ -63,7 +65,15 @@
   };
 
   services.udev.extraRules = ''
+    KERNEL=="uinput", SUBSYSTEM=="misc", MODE="0660", GROUP="input", OPTIONS+="static_node=uinput"
   '';
+
+  services.sunshine = {
+    enable = true;
+    autoStart = true;
+    capSysAdmin = true;
+    openFirewall = true;
+  };
 
   # Enable ly display manager
   services.displayManager.ly.enable = true;
@@ -195,11 +205,13 @@
   # List services that you want to enable:
 
   # Enable the OpenSSH daemon.
-  services.openssh.enable = true;
-
+  services.openssh = {
+    enable = true;
+    settings.X11Forwarding = true;
+  };
   # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 27036 27037 ];
-  networking.firewall.allowedUDPPorts = [ 27031 27036 ];
+  networking.firewall.allowedTCPPorts = [ 47984 47989 48010 27036 27037 ];
+  networking.firewall.allowedUDPPorts = [ 47998 47999 48000 48002 48010 27031 27036 ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
 
