@@ -85,6 +85,12 @@
     useRoutingFeatures = "both";
   };
 
+  systemd.sleep.extraConfig = ''
+    AllowSuspend=yes
+    AllowHibernation=yes
+    AllowHybridSleep=yes
+  '';
+
   systemd.oomd = {
     enable = true;
     enableRootSlice = true;
@@ -150,7 +156,10 @@
 
   hardware.cpu.amd.updateMicrocode = true;
 
-  powerManagement.cpuFreqGovernor = "performance";
+  powerManagement = {
+    enable = true;
+    cpuFreqGovernor = "performance";
+  };
 
   # Define a user account. Don't forget to set a password with ‘passwd’.
   # users.users.alice = {
