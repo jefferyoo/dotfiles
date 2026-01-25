@@ -21,25 +21,27 @@
   };
 
   home.packages = with pkgs; [
+    # System utilities
+    flatpak
+    appimage-run
+    jmtpfs
+
     # System components
     networkmanagerapplet
     libnotify
     nerd-fonts.fira-code
-    hyprshot
-    gamemode
-    wl-clipboard
-    xorg.xauth
-
-    # System utilities
-    flatpak
-    appimage-run
     vulkan-tools
-    jmtpfs
-    p7zip
+    mesa-demos
+
+    # Hyprland components
+    hyprshot
+    wl-clipboard
+    cliphist
     zoxide
+    p7zip
 
     # Languages
-    python315
+    python312
     rustup
     gcc
 
@@ -52,29 +54,16 @@
     
     # Gaming
     steam
+    protonup-rs
     prismlauncher
     limo
     dolphin-emu
+
+    # Gaming components
+    gamemode
   ];
 
   fonts.fontconfig.enable = true;
-
-  systemd.user.services.sunshine = {
-    Unit = {
-      Description = "Sunshine Streaming Server";
-      After = [ "graphical-session.target" ];
-    };
-  
-    Service = {
-      ExecStart = "${pkgs.sunshine}/bin/sunshine";
-      Restart = "on-failure";
-      RestartSec = 5;
-    };
-   
-    Install = {
-      WantedBy = [ "default.target" ];
-    };
-  };
 
   programs.firefox = {
     enable = true;
@@ -235,6 +224,7 @@
         name = "Jeffery Oo";
         email = "oojefferywm@proton.me";
       };
+      pull.rebase = false;
       init.defaultBranch = "main";
       tag.gpgSign = true;
     };
@@ -336,7 +326,6 @@
   programs.bat.enable = true;
   programs.rofi.enable = true;
   services.dunst.enable = true;
-  programs.waybar.enable = true;
 
   programs.gpg.enable = true;
   services.gpg-agent = {
@@ -384,13 +373,7 @@
 
   home.sessionVariables = {
     GTK_USE_PORTAL = "1"; # legacy
-    GDK_DEBUG = "portals"; # termfilechooser
     QT_QPA_PLATFORMTHEME = "xdgdesktopportal";
-
-    VK_ICD_FILENAMES="/run/opengl-driver/share/vulkan/icd.d/radeon_icd.x86_64.json";
-    AMD_VULKAN_ICD="RADV";
-    RADV_PERFTEST="gpl";
-    RADV_DEBUG="nongg";
 
     FLAKE="$HOME/dotfiles";
   };

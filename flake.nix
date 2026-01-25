@@ -37,7 +37,7 @@
               ./home.nix
 
               catppuccin.homeModules.catppuccin
-	      nix-flatpak.homeManagerModules.nix-flatpak
+	            nix-flatpak.homeManagerModules.nix-flatpak
 #               xdg-termfilepickers.homeManagerModules.default
             ];
           };

@@ -6,33 +6,72 @@
 
 {
   nix.settings.experimental-features = [ "nix-command" "flakes" ];
+  nixpkgs.config.allowUnfree = true;
 
-  # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  # Use latest kernel.
   boot.kernelPackages = pkgs.linuxPackages_xanmod;
-
   boot.kernelModules = [
-    "amdgpu"
     "hid_sony"
     "uinput"
   ];
-
   boot.kernelParams = [
     "amd_pstate=active"
-    "amdgpu.ppfeaturemask=0xffffffff"
-    "amdgpu.gpu_recovery=1"
   ];
 
+  # RAM and Swap
   boot.kernel.sysctl = {
     "kernel.sysrq" = 1;
     "vm.max_map_count" = 2147483642;
     "vm.swappiness" = 10;
     "vm.vfs_cache_pressure" = 50;
   };
+  services.earlyoom = {
+    enable = true;
+    freeMemThreshold = 5;
+    freeSwapThreshold = 10;
+  };
+  systemd.oomd = {
+    enable = true;
+    enableRootSlice = true;
+    enableUserSlices = true;
+  };
 
+  # CPU
+  hardware.cpu.amd.updateMicrocode = true;
+  powerManagement = {
+    enable = true;
+    cpuFreqGovernor = "performance";
+  };
+
+  # Graphics
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
+  hardware.amdgpu = {
+    opencl.enable = true;
+    initrd.enable = true;
+    overdrive.enable = true;
+    overdrive.ppfeaturemask = "0xffffffff";
+  };
+  systemd.tmpfiles.rules = 
+  let
+    rocmEnv = pkgs.symlinkJoin {
+      name = "rocm-combined";
+      paths = with pkgs.rocmPackages; [
+        rocblas
+        hipblas
+        clr
+      ];
+    };
+  in [
+    "L+    /opt/rocm   -    -    -     -    ${rocmEnv}"
+  ];
+  services.lact = {
+    enable = true;
+  };
 
   networking.hostName = "yoops"; # Define your hostname.
   # Pick only one of the below networking options.
@@ -42,9 +81,42 @@
   # Set your time zone.
   time.timeZone = "America/New_York";
 
+  # Enable the OpenSSH daemon.
+  services.openssh = {
+    enable = true;
+    settings.X11Forwarding = true;
+  };
+  # Open ports in the firewall.
+  networking.firewall.allowedTCPPorts = [ 47984 47989 48010 27036 27037 22 ];
+  networking.firewall.allowedUDPPorts = [ 47998 47999 48000 48002 48010 27031 27036 ];
+  # Or disable the firewall altogether.
+  # networking.firewall.enable = false;
+
+
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
   # networking.proxy.noProxy = "127.0.0.1,localhost,internal.domain";
+
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true;
+  };
+
+  systemd.sleep.extraConfig = ''
+    AllowSuspend=yes
+    AllowHybridSleep=yes
+  '';
+
+  # Enable sound.
+  # services.pulseaudio.enable = true;
+  # OR
+  services.pipewire = {
+    enable = true;
+    pulse.enable = true;
+  };
+
+  # Enable touchpad support (enabled default in most desktopManager).
+  services.libinput.enable = true;
 
   # Select internationalisation properties.
   # i18n.defaultLocale = "en_US.UTF-8";
@@ -55,46 +127,22 @@
   # };
 
   # Enable the X11 windowing system.
-  services.xserver.enable = false;
-
-
-  services.earlyoom = {
-    enable = true;
-    freeMemThreshold = 5;
-    freeSwapThreshold = 10;
-  };
-
-  services.udev.extraRules = ''
-    KERNEL=="uinput", SUBSYSTEM=="misc", MODE="0660", GROUP="input", OPTIONS+="static_node=uinput"
-  '';
-
-  services.sunshine = {
-    enable = true;
-    autoStart = true;
-    capSysAdmin = true;
-    openFirewall = true;
-  };
+  # services.xserver.enable = false;
 
   # Enable ly display manager
   services.displayManager.ly.enable = true;
-  services.flatpak.enable = true;
+
+  services.sunshine = {
+    enable = true;
+    autoStart = false;
+    capSysAdmin = true;
+    openFirewall = true;
+  };
   
   # Enable Tailscale and IP forwarding
   services.tailscale = {
     enable = true;
     useRoutingFeatures = "both";
-  };
-
-  systemd.sleep.extraConfig = ''
-    AllowSuspend=yes
-    AllowHibernation=yes
-    AllowHybridSleep=yes
-  '';
-
-  systemd.oomd = {
-    enable = true;
-    enableRootSlice = true;
-    enableUserSlices = true;
   };
 
   # Enable UDP GRO forwarding on boot
@@ -118,66 +166,8 @@
     '';
   };
 
-  # Configure keymap in X11
-  # services.xserver.xkb.layout = "us";
-  # services.xserver.xkb.options = "eurosign:e,caps:escape";
-
-  # Enable CUPS to print documents.
-  # services.printing.enable = true;
-
-  # Enable sound.
-  # services.pulseaudio.enable = true;
-  # OR
-  services.pipewire = {
-    enable = true;
-    pulse.enable = true;
-  };
-
-  # Enable touchpad support (enabled default in most desktopManager).
-  services.libinput.enable = true;
-
-  hardware.bluetooth = {
-    enable = true;
-    powerOnBoot = true;
-  };
-
-  hardware.graphics = {
-    enable = true;
-    enable32Bit = true;
-    extraPackages = with pkgs; [
-      mesa
-      vulkan-loader
-      vulkan-validation-layers
-    ];
-    extraPackages32 = with pkgs.pkgsi686Linux; [
-      vulkan-loader
-    ];
-  };
-
-  hardware.cpu.amd.updateMicrocode = true;
-
-  powerManagement = {
-    enable = true;
-    cpuFreqGovernor = "performance";
-  };
-
-  # Define a user account. Don't forget to set a password with ‘passwd’.
-  # users.users.alice = {
-  #   isNormalUser = true;
-  #   extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
-  #   packages = with pkgs; [
-  #     tree
-  #   ];
-  # };
-  users.users.yoops = {
-    isNormalUser = true;
-    shell = pkgs.zsh;
-    extraGroups = [ "wheel" "networkmanager" "video" "render" "input"];
-  };
-
-  users.defaultUserShell = pkgs.zsh;
-
   programs.zsh.enable = true;
+
   programs.hyprland = {
     enable = true;
     xwayland.enable = true;
@@ -190,17 +180,41 @@
     flake = "/home/yoops/dotfiles";
   };
 
+
+  # Enable CUPS to print documents.
+  # services.printing.enable = true;
+
+  # Define a user account. Don't forget to set a password with ‘passwd’.
+  # users.users.alice = {
+  #   isNormalUser = true;
+  #   extraGroups = [ "wheel" ]; # Enable ‘sudo’ for the user.
+  #   packages = with pkgs; [
+  #     tree
+  #   ];
+  # };
+  users.users.yoops = {
+    isNormalUser = true;
+    extraGroups = [ "wheel" "networkmanager" "video" "render" "input"];
+  };
+
+  users.defaultUserShell = pkgs.zsh;
+
   # List packages installed in system profile.
   # You can use https://search.nixos.org/ to find more packages (and options).
   environment.systemPackages = with pkgs; [
-    ly
-    rage
-    bluez
-    bluez-tools
+    vulkan-validation-layers
+    libva-utils
+
+    ragenix
   ];
 
   environment.variables = {
     NIXOS_OZONE_WL = 1; # Configure Electron / CEF apps to use Wayland
+
+    AMD_VULKAN_ICD="RADV";
+    RADV_PERFTEST="gpl";
+    RADV_DEBUG="nongg";
+    LIBVA_DRIVER_NAME = "radeonsi";
   };
 
   # Some programs need SUID wrappers, can be configured further or are
@@ -210,19 +224,6 @@
   #   enable = true;
   #   enableSSHSupport = true;
   # };
-
-  # List services that you want to enable:
-
-  # Enable the OpenSSH daemon.
-  services.openssh = {
-    enable = true;
-    settings.X11Forwarding = true;
-  };
-  # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 47984 47989 48010 27036 27037 ];
-  networking.firewall.allowedUDPPorts = [ 47998 47999 48000 48002 48010 27031 27036 ];
-  # Or disable the firewall altogether.
-  # networking.firewall.enable = false;
 
   # Copy the NixOS configuration file and link it from the resulting system
   # (/run/current-system/configuration.nix). This is useful in case you
