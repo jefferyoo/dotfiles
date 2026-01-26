@@ -27,7 +27,6 @@
     jmtpfs
 
     # System components
-    networkmanagerapplet
     libnotify
     nerd-fonts.fira-code
     vulkan-tools

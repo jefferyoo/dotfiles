@@ -211,7 +211,6 @@
   environment.variables = {
     NIXOS_OZONE_WL = 1; # Configure Electron / CEF apps to use Wayland
 
-    AMD_VULKAN_ICD="RADV";
     RADV_PERFTEST="gpl";
     RADV_DEBUG="nongg";
     LIBVA_DRIVER_NAME = "radeonsi";
