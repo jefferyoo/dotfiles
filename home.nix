@@ -1,6 +1,8 @@
-{ pkgs, lib, config, neovim-nightly-overlay, ...}:
+{ pkgs, lib, config, inputs, neovim-nightly-overlay, ...}:
 
 {
+  imports = [ inputs.ragenix.homeManagerModules.default ];
+
   nixpkgs.config.allowUnfreePredicate = pkg : builtins.elem (lib.getName pkg) [
     "discord-canary"
     "steam"
@@ -42,14 +44,20 @@
     # Languages
     python312
     rustup
+    verilator
+    nushell
     gcc
+    gnumake
 
     # Apps
     discord-canary
+    signal-desktop-bin
     xournalpp
     tmux
     keepassxc
     typst
+    kicad
+    gtkwave
     
     # Gaming
     steam
@@ -57,6 +65,7 @@
     prismlauncher
     limo
     dolphin-emu
+    cemu
 
     # Gaming components
     gamemode
@@ -69,7 +78,6 @@
     profiles.default = {
       extensions.force = true;
       settings = {
-#       "widget.use-xdg-desktop-portal.file-picker" = 1;
       	"layout.css.devPixelsPerPx" = "1.2";
       };
     };
@@ -139,6 +147,9 @@
       ls = "eza -la";
       cat = "bat --style=plain --paging=never";
       cd = "z";
+      claer = "clear";
+
+      termusic = "~/Documents/Projects/termusic/target/release/termusic";
     };
 
     initContent = ''
@@ -206,6 +217,29 @@
   programs.starship = {
     enable = true;
     enableZshIntegration = true;
+  };
+
+  age.identityPaths = [ "${config.home.homeDirectory}/.ssh/id_age" ];
+
+  age.secrets.afs_password = {
+    file = ./secrets/afs_password.age;
+  };
+
+  programs.rclone = {
+    enable = true;
+    remotes = {
+      afs = {
+        # Wrap the standard rclone keys in a 'config' block
+        config = {
+          type = "sftp";
+          host = "ece026.ece.local.cmu.edu";
+          user = "jefferyo";
+          key_file = "none";
+          auth_method = "password";
+          shell_type = "unix";
+        };
+      };
+    };
   };
 
   programs.gh = {
@@ -278,7 +312,7 @@
     ];
 
     extraPackages = with pkgs; [
-      svls
+      verible
       vhdl-ls
       asm-lsp
       rust-analyzer
@@ -346,35 +380,32 @@
     };
   };
 
-#   services.xdg-desktop-portal-termfilepickers = {
-#     enable = true;
-#     package = xdg-termfilepickers.packages.${pkgs.stdenv.hostPlatform.system}.default;
-#     config = {
-#       terminal_command = [(lib.getExe pkgs.foot)];
-#     };
-#   };
-
   xdg.userDirs = {
     enable = true;
     createDirectories = true;
   };
 
-#   xdg.portal = {
-#     enable = true;
-#     extraPortals = with pkgs; [ xdg-desktop-portal-hyprland ];
-#     config = {
-#       common = {
-#         default = [ "hyprland" ];
-#         "org.freedesktop.impl.portal.FileChooser" = [ "termfilepickers" ];
-#       };
-#     };
-#   };
+  xdg.desktopEntries.termusic = {
+    name = "Termusic";
+    comment = "Terminal Music Player";
+    exec = "foot -e /home/yoops/Documents/Projects/termusic/target/release/termusic";
+    terminal = false;
+    icon = "/home/yoops/.local/share/icons/termusic.png";  # or svg
+    categories = [ "Audio" "AudioVideo" "Player" ];
+  };
 
   home.sessionVariables = {
     GTK_USE_PORTAL = "1"; # legacy
     QT_QPA_PLATFORMTHEME = "xdgdesktopportal";
 
     FLAKE="$HOME/dotfiles";
+
+    XDG_DATA_DIRS = lib.concatStringsSep ":" [
+        "$HOME/.local/share/flatpak/exports/share"
+        "/var/lib/flatpak/exports/share"
+        "$HOME/.nix-profile/share"
+        "/run/current-system/sw/share"
+      ];
   };
 
   home.stateVersion = "25.05";

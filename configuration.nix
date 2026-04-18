@@ -77,6 +77,11 @@
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
+  networking.extraHosts = ''
+    127.0.0.1 pretendo.network
+    127.0.0.1 account.pretendo.network
+    127.0.0.1 api.pretendo.network
+  '';
 
   # Set your time zone.
   time.timeZone = "America/New_York";
@@ -92,6 +97,11 @@
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
 
+  virtualisation.docker = {
+    enable = true;
+    enableOnBoot = true;
+  };
+
 
   # Configure network proxy if necessary
   # networking.proxy.default = "http://user:password@proxy:port/";
@@ -100,6 +110,12 @@
   hardware.bluetooth = {
     enable = true;
     powerOnBoot = true;
+    settings = {
+      General = {
+        Enable = "Source,Sink,Media,Socket";
+        Experimental = true;
+      };
+    };
   };
 
   systemd.sleep.extraConfig = ''
@@ -194,7 +210,7 @@
   # };
   users.users.yoops = {
     isNormalUser = true;
-    extraGroups = [ "wheel" "networkmanager" "video" "render" "input"];
+    extraGroups = [ "wheel" "networkmanager" "video" "render" "input" "docker" ];
   };
 
   users.defaultUserShell = pkgs.zsh;
@@ -205,6 +221,7 @@
     vulkan-validation-layers
     libva-utils
 
+    rage
     ragenix
   ];
 

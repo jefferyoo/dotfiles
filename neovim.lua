@@ -4,6 +4,14 @@ vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
 vim.opt.softtabstop = 2
 
+vim.filetype.add({
+  extension = {
+    sv = 'systemverilog',
+    svh= 'systemverilog',
+    v = 'verilog',
+  }
+})
+
 -- Set leader key to Space
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
@@ -59,7 +67,11 @@ end
 
 -- Define LSP configurations
 local servers = {
-  svls = {},
+  ['verible-verilog-ls'] = {
+    cmd = { 'verible-verilog-ls', '--rules_config_search' },
+    filetypes = { 'verilog', 'systemverilog' },
+    root_markers = { '.git' },
+  },
   vhdl_ls = {},
   asm_lsp = {},
   rust_analyzer = {},
