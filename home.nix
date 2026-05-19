@@ -7,6 +7,8 @@
     "discord-canary"
     "steam"
     "steam-unwrapped"
+    "cloudflare-warp"
+    "ltspice"
   ];
 
   services.flatpak = {
@@ -26,7 +28,7 @@
     # System utilities
     flatpak
     appimage-run
-    jmtpfs
+    android-tools
 
     # System components
     libnotify
@@ -40,14 +42,22 @@
     cliphist
     zoxide
     p7zip
+    mpv
+    imv
 
     # Languages
     python312
     rustup
-    verilator
     nushell
     gcc
     gnumake
+
+    # EDA
+    verilator
+    kicad
+    ltspice
+    gtkwave
+    xyce
 
     # Apps
     discord-canary
@@ -56,8 +66,9 @@
     tmux
     keepassxc
     typst
-    kicad
-    gtkwave
+    deluge
+    cloudflare-warp
+    amberol
     
     # Gaming
     steam
@@ -385,14 +396,15 @@
     createDirectories = true;
   };
 
-  xdg.desktopEntries.termusic = {
-    name = "Termusic";
-    comment = "Terminal Music Player";
-    exec = "foot -e /home/yoops/Documents/Projects/termusic/target/release/termusic";
-    terminal = false;
-    icon = "/home/yoops/.local/share/icons/termusic.png";  # or svg
-    categories = [ "Audio" "AudioVideo" "Player" ];
-  };
+  home.file.".local/share/wayland-sessions/hyprland-uwsm.desktop".text = lib.mkForce ''
+[Desktop Entry]
+Name=Hyprland (uwsm-managed)
+Comment=An intelligent dynamic tiling Wayland compositor
+Exec=uwsm start -e -D Hyprland hyprland.desktop
+TryExec=uwsm
+DesktopNames=Hyprland:X-NIXOS-SYSTEMD-AWARE
+Type=Application
+  '';
 
   home.sessionVariables = {
     GTK_USE_PORTAL = "1"; # legacy
@@ -400,12 +412,12 @@
 
     FLAKE="$HOME/dotfiles";
 
-    XDG_DATA_DIRS = lib.concatStringsSep ":" [
-        "$HOME/.local/share/flatpak/exports/share"
-        "/var/lib/flatpak/exports/share"
-        "$HOME/.nix-profile/share"
-        "/run/current-system/sw/share"
-      ];
+    # XDG_DATA_DIRS = lib.concatStringsSep ":" [
+    #     "$HOME/.local/share/flatpak/exports/share"
+    #     "/var/lib/flatpak/exports/share"
+    #     "$HOME/.nix-profile/share"
+    #     "/run/current-system/sw/share"
+    #   ];
   };
 
   home.stateVersion = "25.05";

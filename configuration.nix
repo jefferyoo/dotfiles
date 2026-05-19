@@ -12,12 +12,29 @@
   boot.loader.efi.canTouchEfiVariables = true;
 
   boot.kernelPackages = pkgs.linuxPackages_xanmod;
+  # boot.kernelPackages = pkgs.linuxPackages_latest;
+
+  hardware.firmware = [
+    (pkgs.runCommand "sceptre-q32-edid" {} ''
+      mkdir -p $out/lib/firmware/edid
+      echo "AP///////wBOFMYMAQAAACgdAQOARih4K911pVVOnScLUFQjCABhQIHAgYCpwHFA0cABAQEBal4AoKCgKVAwIDUAxI4hAAAeAAAA/QAwQRdjHgAKICAgICAgAjqAGHE4LUBYLEUADyghAAAeAAAA/ABTY2VwdHJlIFEzMgogASoCAyrxSxAfBRQEEwMSAhEBIwkHB4MBAABoAwwAEAAAeABoGgAAAQEwPACORICgcDgtQFgsRQBVKCEAAB5mIVCwUQAbMEBwNgAPKCEAAB5/IVaqUQAeMEaPMwBVKCEAAH/TLACkUTgtQCCgNQBVKCEAAHsAAAAAAAAAAAAAAAAASg==" \
+      | base64 -d > $out/lib/firmware/edid/sceptre-q32.bin
+    '')
+  ];
+
+  boot.initrd.kernelModules = [ "amdgpu" ];
   boot.kernelModules = [
     "hid_sony"
     "uinput"
   ];
   boot.kernelParams = [
     "amd_pstate=active"
+    # "amdgpu.dc=1"
+    # "amdgpu.dcdebugmask=0x10"
+    # "amdgpu.dcfeaturemask=0x0"
+    # "amdgpu.deep_color=0"
+    "drm.edid_firmware=HDMI-A-2:edid/sceptre-q32.bin"
+    # "nomodeset"
   ];
 
   # RAM and Swap
@@ -53,8 +70,8 @@
   hardware.amdgpu = {
     opencl.enable = true;
     initrd.enable = true;
-    overdrive.enable = true;
-    overdrive.ppfeaturemask = "0xffffffff";
+    # overdrive.enable = true;
+    # overdrive.ppfeaturemask = "0xfffd7fff";
   };
   systemd.tmpfiles.rules = 
   let
@@ -92,7 +109,7 @@
     settings.X11Forwarding = true;
   };
   # Open ports in the firewall.
-  networking.firewall.allowedTCPPorts = [ 47984 47989 48010 27036 27037 22 ];
+  networking.firewall.allowedTCPPorts = [ 47984 47989 48010 27036 27037 22 25565 8100 ];
   networking.firewall.allowedUDPPorts = [ 47998 47999 48000 48002 48010 27031 27036 ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
@@ -146,7 +163,12 @@
   # services.xserver.enable = false;
 
   # Enable ly display manager
-  services.displayManager.ly.enable = true;
+  services.displayManager.ly = {
+    enable = true;
+    settings = {
+      waylandsessions = "/home/yoops/.local/share/wayland-sessions";
+    };
+  };
 
   services.sunshine = {
     enable = true;
@@ -159,27 +181,48 @@
   services.tailscale = {
     enable = true;
     useRoutingFeatures = "both";
+    openFirewall = true;
   };
 
-  # Enable UDP GRO forwarding on boot
-  systemd.services.tailscale-udp-gro = {
-    description = "Enable UDP GRO forwarding for Tailscale";
-    after = [ "network-online.target" ];
-    wants = [ "network-online.target" ];
-    wantedBy = [ "multi-user.target" ];
+  services.zerotierone = {
+    enable = true;
+    joinNetworks = [ "3efa5cb78a624343" ];
+  };
 
-    serviceConfig = {
-      Type = "oneshot";
-      RemainAfterExit = true;
+  systemd.services = {
+    # Enable UDP GRO forwarding on boot
+    tailscale-udp-gro = {
+      description = "Enable UDP GRO forwarding for Tailscale";
+      after = [ "network-online.target" ];
+      wants = [ "network-online.target" ];
+      wantedBy = [ "multi-user.target" ];
+
+      serviceConfig = {
+        Type = "oneshot";
+        RemainAfterExit = true;
+      };
+
+      script = ''
+        # Get the default route interface
+        NETDEV=$(${pkgs.iproute2}/bin/ip -o route get 8.8.8.8 | cut -f 5 -d " ")
+        if [ -n "$NETDEV" ]; then
+          ${pkgs.ethtool}/bin/ethtool -K $NETDEV rx-udp-gro-forwarding on rx-gro-list off || true
+        fi
+      '';
     };
 
-    script = ''
-      # Get the default route interface
-      NETDEV=$(${pkgs.iproute2}/bin/ip -o route get 8.8.8.8 | cut -f 5 -d " ")
-      if [ -n "$NETDEV" ]; then
-        ${pkgs.ethtool}/bin/ethtool -K $NETDEV rx-udp-gro-forwarding on rx-gro-list off || true
-      fi
-    '';
+    display-manager = {
+      environment = {
+        XDG_DATA_DIRS = "/run/current-system/sw/share";
+      };
+    };
+
+    tailscaled = {
+      after = [ "network-online.target" "NetworkManager-wait-online.service" ];
+      wants = [ "network-online.target" "NetworkManager-wait-online.service" ];
+    };
+
+    NetworkManager-wait-online.enable = true;
   };
 
   programs.zsh.enable = true;
@@ -226,7 +269,7 @@
   ];
 
   environment.variables = {
-    NIXOS_OZONE_WL = 1; # Configure Electron / CEF apps to use Wayland
+    NIXOS_OZONE_WL = "1"; # Configure Electron / CEF apps to use Wayland
 
     RADV_PERFTEST="gpl";
     RADV_DEBUG="nongg";
