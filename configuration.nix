@@ -94,11 +94,6 @@
   # Pick only one of the below networking options.
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
   networking.networkmanager.enable = true;  # Easiest to use and most distros use this by default.
-  networking.extraHosts = ''
-    127.0.0.1 pretendo.network
-    127.0.0.1 account.pretendo.network
-    127.0.0.1 api.pretendo.network
-  '';
 
   # Set your time zone.
   time.timeZone = "America/New_York";
@@ -110,7 +105,7 @@
   };
   # Open ports in the firewall.
   networking.firewall.allowedTCPPorts = [ 47984 47989 48010 27036 27037 22 25565 8100 ];
-  networking.firewall.allowedUDPPorts = [ 47998 47999 48000 48002 48010 27031 27036 ];
+  networking.firewall.allowedUDPPorts = [ 47998 47999 48000 48002 48010 27031 27036 58000 ];
   # Or disable the firewall altogether.
   # networking.firewall.enable = false;
 
@@ -135,10 +130,10 @@
     };
   };
 
-  systemd.sleep.extraConfig = ''
-    AllowSuspend=yes
-    AllowHybridSleep=yes
-  '';
+  systemd.sleep.settings.Sleep = {
+    HibernateDelaySec = "2h";
+    SuspendState = "mem";
+  };
 
   # Enable sound.
   # services.pulseaudio.enable = true;
@@ -271,10 +266,12 @@
   environment.variables = {
     NIXOS_OZONE_WL = "1"; # Configure Electron / CEF apps to use Wayland
 
-    RADV_PERFTEST="gpl";
-    RADV_DEBUG="nongg";
     LIBVA_DRIVER_NAME = "radeonsi";
   };
+
+  environment.etc."gai.conf".text = ''
+    precedence ::ffff:0:0/96  100
+  '';
 
   # Some programs need SUID wrappers, can be configured further or are
   # started in user sessions.

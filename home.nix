@@ -9,6 +9,8 @@
     "steam-unwrapped"
     "cloudflare-warp"
     "ltspice"
+    "7zz"
+    "uasm"
   ];
 
   services.flatpak = {
@@ -41,7 +43,7 @@
     wl-clipboard
     cliphist
     zoxide
-    p7zip
+    _7zz-rar
     mpv
     imv
 
@@ -57,11 +59,10 @@
     kicad
     ltspice
     gtkwave
-    xyce
 
     # Apps
     discord-canary
-    signal-desktop-bin
+    signal-desktop
     xournalpp
     tmux
     keepassxc
@@ -76,6 +77,7 @@
     prismlauncher
     limo
     dolphin-emu
+    ryubing
     cemu
 
     # Gaming components
@@ -145,7 +147,7 @@
     dotDir = "${config.xdg.configHome}/zsh";
 
     shellAliases = {
-      update = "nh os switch && flatpak update";
+      update = "nh os switch --update && flatpak update";
 
       config = "nvim ~/dotfiles/configuration.nix";
       flake = "nvim ~/dotfiles/flake.nix";
@@ -379,7 +381,7 @@
     pinentry.package = pkgs.pinentry-curses;
   };
 
-  services.ssh-agent.enable = true;
+  # services.ssh-agent.enable = true;
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
@@ -411,13 +413,12 @@ Type=Application
     QT_QPA_PLATFORMTHEME = "xdgdesktopportal";
 
     FLAKE="$HOME/dotfiles";
-
-    # XDG_DATA_DIRS = lib.concatStringsSep ":" [
-    #     "$HOME/.local/share/flatpak/exports/share"
-    #     "/var/lib/flatpak/exports/share"
-    #     "$HOME/.nix-profile/share"
-    #     "/run/current-system/sw/share"
-    #   ];
+    XDG_DATA_DIRS = lib.concatStringsSep ":" [
+        "$HOME/.local/share/flatpak/exports/share"
+        "/var/lib/flatpak/exports/share"
+        "$HOME/.nix-profile/share"
+        "/run/current-system/sw/share"
+      ];
   };
 
   home.stateVersion = "25.05";
