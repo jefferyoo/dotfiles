@@ -11,8 +11,6 @@
 
     catppuccin.url = "github:catppuccin/nix";
 
-    neovim-nightly-overlay.url = "github:nix-community/neovim-nightly-overlay";
-
     nix-flatpak.url = "github:gmodena/nix-flatpak/";
 
     ragenix.url = "github:yaxitech/ragenix";
@@ -21,7 +19,7 @@
 #     xdg-termfilepickers.url = "github:Guekka/xdg-desktop-portal-termfilepickers/195ba6bb4a4f0224b0e749f2198fc88696be6383";
   };
 
-  outputs = { nixpkgs, home-manager, catppuccin, neovim-nightly-overlay, nix-flatpak, ... } @ inputs: {
+  outputs = { nixpkgs, home-manager, catppuccin, nix-flatpak, ... } @ inputs: {
     nixosConfigurations.yoops = nixpkgs.lib.nixosSystem {
       system = "x86_64-linux";
       modules = [
@@ -32,7 +30,6 @@
         {
           home-manager.backupFileExtension = "backup";
           home-manager.extraSpecialArgs = {
-            inherit neovim-nightly-overlay;
             inherit inputs;
           };
 
